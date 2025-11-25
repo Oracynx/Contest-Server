@@ -5,11 +5,15 @@
     "": {
       "name": "contest",
       "dependencies": {
+        "@elysiajs/jwt": "^1.4.0",
+        "@elysiajs/static": "^1.4.7",
         "elysia": "^1.4.16",
         "mongodb": "^7.0.0",
+        "toastify-js": "^1.12.0",
       },
       "devDependencies": {
         "@types/bun": "latest",
+        "@types/toastify-js": "^1.12.4",
       },
       "peerDependencies": {
         "typescript": "^5",
@@ -18,6 +22,10 @@
   },
   "packages": {
     "@borewit/text-codec": ["@borewit/text-codec@0.1.1", "https://registry.npmmirror.com/@borewit/text-codec/-/text-codec-0.1.1.tgz", {}, "sha512-5L/uBxmjaCIX5h8Z+uu+kA9BQLkc/Wl06UGR5ajNRxu+/XjonB5i8JpgFMrPj3LXTCPA0pv8yxUvbUi+QthGGA=="],
+
+    "@elysiajs/jwt": ["@elysiajs/jwt@1.4.0", "https://registry.npmmirror.com/@elysiajs/jwt/-/jwt-1.4.0.tgz", { "dependencies": { "jose": "^6.0.11" }, "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-Z0PvZhQxdDeKZ8HslXzDoXXD83NKExNPmoiAPki3nI2Xvh5wtUrBH+zWOD17yP14IbRo8fxGj3L25MRCAPsgPA=="],
+
+    "@elysiajs/static": ["@elysiajs/static@1.4.7", "https://registry.npmmirror.com/@elysiajs/static/-/static-1.4.7.tgz", { "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-Go4kIXZ0G3iWfkAld07HmLglqIDMVXdyRKBQK/sVEjtpDdjHNb+rUIje73aDTWpZYg4PEVHUpi9v4AlNEwrQug=="],
 
     "@mongodb-js/saslprep": ["@mongodb-js/saslprep@1.3.2", "https://registry.npmmirror.com/@mongodb-js/saslprep/-/saslprep-1.3.2.tgz", { "dependencies": { "sparse-bitfield": "^3.0.3" } }, "sha512-QgA5AySqB27cGTXBFmnpifAi7HxoGUeezwo6p9dI03MuDB6Pp33zgclqVb6oVK3j6I9Vesg0+oojW2XxB59SGg=="],
 
@@ -30,6 +38,8 @@
     "@types/bun": ["@types/bun@1.3.3", "https://registry.npmmirror.com/@types/bun/-/bun-1.3.3.tgz", { "dependencies": { "bun-types": "1.3.3" } }, "sha512-ogrKbJ2X5N0kWLLFKeytG0eHDleBYtngtlbu9cyBKFtNL3cnpDZkNdQj8flVf6WTZUX5ulI9AY1oa7ljhSrp+g=="],
 
     "@types/node": ["@types/node@24.10.1", "https://registry.npmmirror.com/@types/node/-/node-24.10.1.tgz", { "dependencies": { "undici-types": "~7.16.0" } }, "sha512-GNWcUTRBgIRJD5zj+Tq0fKOJ5XZajIiBroOF0yvj2bSU1WvNdYS/dn9UxwsujGW4JX06dnHyjV2y9rRaybH0iQ=="],
+
+    "@types/toastify-js": ["@types/toastify-js@1.12.4", "https://registry.npmmirror.com/@types/toastify-js/-/toastify-js-1.12.4.tgz", {}, "sha512-zfZHU4tKffPCnZRe7pjv/eFKzTVHozKewFCKaCjZ4gFinKgJRz/t0bkZiMCXJxPhv/ZoeDGNOeRD09R0kQZ/nw=="],
 
     "@types/webidl-conversions": ["@types/webidl-conversions@7.0.3", "https://registry.npmmirror.com/@types/webidl-conversions/-/webidl-conversions-7.0.3.tgz", {}, "sha512-CiJJvcRtIgzadHCYXw7dqEnMNRjhGZlYK05Mj9OyktqV8uVT8fD2BFOB7S1uwBE3Kj2Z+4UyPmFw/Ixgw/LAlA=="],
 
@@ -53,6 +63,8 @@
 
     "ieee754": ["ieee754@1.2.1", "https://registry.npmmirror.com/ieee754/-/ieee754-1.2.1.tgz", {}, "sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA=="],
 
+    "jose": ["jose@6.1.2", "https://registry.npmmirror.com/jose/-/jose-6.1.2.tgz", {}, "sha512-MpcPtHLE5EmztuFIqB0vzHAWJPpmN1E6L4oo+kze56LIs3MyXIj9ZHMDxqOvkP38gBR7K1v3jqd4WU2+nrfONQ=="],
+
     "memoirist": ["memoirist@0.4.0", "https://registry.npmmirror.com/memoirist/-/memoirist-0.4.0.tgz", {}, "sha512-zxTgA0mSYELa66DimuNQDvyLq36AwDlTuVRbnQtB+VuTcKWm5Qc4z3WkSpgsFWHNhexqkIooqpv4hdcqrX5Nmg=="],
 
     "memory-pager": ["memory-pager@1.5.0", "https://registry.npmmirror.com/memory-pager/-/memory-pager-1.5.0.tgz", {}, "sha512-ZS4Bp4r/Zoeq6+NLJpP+0Zzm0pR8whtGPf1XExKLJBAczGMnSi3It14OiNCStjQjM6NU1okjQGSxgEZN8eBYKg=="],
@@ -70,6 +82,8 @@
     "sparse-bitfield": ["sparse-bitfield@3.0.3", "https://registry.npmmirror.com/sparse-bitfield/-/sparse-bitfield-3.0.3.tgz", { "dependencies": { "memory-pager": "^1.0.2" } }, "sha512-kvzhi7vqKTfkh0PZU+2D2PIllw2ymqJKujUcyPMd9Y75Nv4nPbGJZXNhxsgdQab2BmlDct1YnfQCguEvHr7VsQ=="],
 
     "strtok3": ["strtok3@10.3.4", "https://registry.npmmirror.com/strtok3/-/strtok3-10.3.4.tgz", { "dependencies": { "@tokenizer/token": "^0.3.0" } }, "sha512-KIy5nylvC5le1OdaaoCJ07L+8iQzJHGH6pWDuzS+d07Cu7n1MZ2x26P8ZKIWfbK02+XIL8Mp4RkWeqdUCrDMfg=="],
+
+    "toastify-js": ["toastify-js@1.12.0", "https://registry.npmmirror.com/toastify-js/-/toastify-js-1.12.0.tgz", {}, "sha512-HeMHCO9yLPvP9k0apGSdPUWrUbLnxUKNFzgUoZp1PHCLploIX/4DSQ7V8H25ef+h4iO9n0he7ImfcndnN6nDrQ=="],
 
     "token-types": ["token-types@6.1.1", "https://registry.npmmirror.com/token-types/-/token-types-6.1.1.tgz", { "dependencies": { "@borewit/text-codec": "^0.1.0", "@tokenizer/token": "^0.3.0", "ieee754": "^1.2.1" } }, "sha512-kh9LVIWH5CnL63Ipf0jhlBIy0UsrMj/NJDfpsy1SqOXlLKEVyXXYrnFxFT1yOOYVGBSApeVnjPw/sBz5BfEjAQ=="],
 
