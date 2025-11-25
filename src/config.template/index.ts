@@ -12,3 +12,5 @@ export const MaxiumPoints = 100;
 export const MiniumPoints = 0;
 export const IgnoreMin = 0;
 export const IgnoreMax = 0;
+
+export const MicrosoftClarityId = 'your_project_id'
