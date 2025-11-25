@@ -1,4 +1,4 @@
-import { init, type Res } from './utils/base';
+import { init, showSuccess, toUserName, type Res } from './utils/base';
 
 init('Leaderboard', false);
 
@@ -37,7 +37,6 @@ async function updateLeaderboard()
         return;
     }
     const works = worksRes.data as unknown as Work[];
-
     const results = await Promise.all(works.map(async (work) =>
     {
         const voteRes = await fetch('/api/query_vote?workId=' + work.workId).then(res => res.json()) as { success: boolean, data: VoteData };
@@ -82,13 +81,14 @@ async function updateLeaderboard()
 
 updateLeaderboard();
 
-const ws = new WebSocket(`ws://${window.location.host}/ws/leaderboard`);
+const ws = new WebSocket(`${window.location.protocol == 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/leaderboard`);
 
-ws.onmessage = (event) =>
+ws.onmessage = async (event) =>
 {
     const data = JSON.parse(event.data) as { type: string, data: string };
     if (data.type == 'vote')
     {
         updateLeaderboard();
+        showSuccess(`用户 ${await toUserName(data.data)} 提交了新的评分！`);
     }
 }
