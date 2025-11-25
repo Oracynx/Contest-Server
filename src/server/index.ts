@@ -1,6 +1,6 @@
 import Elysia from 'elysia';
 import { auth, tryLogin } from './auth/utils';
-import { messagesCollection, worksCollection } from './database';
+import { messagesCollection, usersCollection, worksCollection } from './database';
 import { Fail, Ok } from './utils/def';
 import { queryVote, vote } from './works';
 
@@ -49,7 +49,7 @@ export const serverApp = new Elysia()
         {
             const data = ctx.body as { userId: string, workdId: string, message: string };
             const userId = data.userId;
-            if (!auth(userId))
+            if (!await auth(userId))
             {
                 return Fail('Authentication failed');
             }
@@ -59,5 +59,16 @@ export const serverApp = new Elysia()
             }
             await messagesCollection.insertOne({ userId: data.userId, workId: data.workdId, message: data.message });
             return Ok('Message recorded');
+        })
+        .get('/user_info', async (ctx) =>
+        {
+            const data = ctx.query as { userId: string };
+            const userId = data.userId;
+            if (!await auth(userId))
+            {
+                return Fail('User not found');
+            }
+            const user = await usersCollection.findOne({ userId }) as { username: string, password: string, userId: string, _id?: unknown };
+            return Ok(user.username);
         })
     )
