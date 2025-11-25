@@ -1,6 +1,7 @@
 import { init, showError, showSuccess, type Res } from './utils/base';
 
 const userInfo = document.getElementById('user-info') as HTMLParagraphElement;
+const gotoVoteDiv = document.getElementById('goto-vote') as HTMLDivElement;
 const usernameInput = document.getElementById('username-input') as HTMLInputElement;
 const passwordInput = document.getElementById('password-input') as HTMLInputElement;
 const loginButton = document.getElementById('login-button') as HTMLButtonElement;
@@ -10,6 +11,7 @@ async function updateUserinfo()
     const token = localStorage.getItem('userId');
     if (!token)
     {
+        gotoVoteDiv.style.display = 'none';
         userInfo.innerText = '未登录';
     }
     else
@@ -19,10 +21,12 @@ async function updateUserinfo()
             {
                 if (!data.success)
                 {
+                    gotoVoteDiv.style.display = 'none';
                     userInfo.innerText = '未登录';
                 }
                 else
                 {
+                    gotoVoteDiv.style.display = 'block';
                     userInfo.innerText = '已登录，用户：' + data.data;
                 }
             }
