@@ -37,7 +37,7 @@ export async function showError(message: string)
     }).showToast();
 }
 
-export async function checkLogin()
+async function checkLogin()
 {
     const token = localStorage.getItem('userId');
     if (!token)
