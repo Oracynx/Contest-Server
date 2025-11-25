@@ -93,7 +93,7 @@ export const serverApp = new Elysia()
         })
         .post('/message', async (ctx) =>
         {
-            const data = ctx.body as { userId: string, workdId: string, message: string };
+            const data = ctx.body as { userId: string, workId: string, message: string };
             const userId = data.userId;
             if (!await auth(userId))
             {
@@ -103,7 +103,7 @@ export const serverApp = new Elysia()
             {
                 return Fail('消息过长');
             }
-            await messagesCollection.insertOne({ userId: data.userId, workId: data.workdId, message: data.message });
+            await messagesCollection.insertOne({ userId: data.userId, workId: data.workId, message: data.message });
             return Ok('消息已记录');
         })
         .get('/user_info', async (ctx) =>
