@@ -9,9 +9,9 @@ import { defaultWork } from '../admin';
 const LeaderboardClientSet = new Set<ServerWebSocket<any>>();
 const VoteDefaultClientSet = new Set<ServerWebSocket<any>>();
 
-async function broadcastLeaderboardUpdate()
+async function broadcastLeaderboardUpdate(userId: string)
 {
-    const message = JSON.stringify({ type: 'vote', data: '' });
+    const message = JSON.stringify({ type: 'vote', data: userId });
     for (const client of LeaderboardClientSet)
     {
         client.send(message);
@@ -77,7 +77,7 @@ export const serverApp = new Elysia()
             {
                 return Fail('评分必须为整数');
             }
-            broadcastLeaderboardUpdate();
+            broadcastLeaderboardUpdate(userId);
             return await vote(data.workId, data.points, data.userId);
         })
         .get('/query_vote', async (ctx) =>

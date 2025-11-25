@@ -6,7 +6,7 @@ export async function vote(workId: string, points: number, userId: string)
 {
     if (points < MiniumPoints || points > MaxiumPoints)
     {
-        return Fail(`Points must be between ${MiniumPoints} and ${MaxiumPoints}`);
+        return Fail(`评分必须在 ${MiniumPoints} 到 ${MaxiumPoints} 之间`);
     }
     votesCollection.insertOne({
         workId: workId,
@@ -14,7 +14,7 @@ export async function vote(workId: string, points: number, userId: string)
         userId: userId,
         timestamp: Math.floor(Date.now() / 1000),
     });
-    return Ok('Vote recorded');
+    return Ok('评分已记录');
 }
 
 export async function queryVote(workId: string)
