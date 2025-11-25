@@ -3,8 +3,32 @@ import { auth, tryLogin } from './auth/utils';
 import { messagesCollection, usersCollection, worksCollection } from './database';
 import { Fail, Ok } from './utils/def';
 import { queryVote, vote } from './works';
+import type { ServerWebSocket } from 'bun';
+
+const ClientSet = new Set<ServerWebSocket<any>>();
+
+async function broadcastLeaderboardUpdate()
+{
+    const message = JSON.stringify({ type: 'vote', data: '' });
+    for (const client of ClientSet)
+    {
+        client.send(message);
+    }
+}
 
 export const serverApp = new Elysia()
+    .group('/ws', (app) => app
+        .ws('/leaderboard', {
+            open(ws)
+            {
+                ClientSet.add(ws.raw as ServerWebSocket<any>);
+            },
+            close(ws)
+            {
+                ClientSet.delete(ws.raw as ServerWebSocket<any>);
+            }
+        })
+    )
     .group('/api', (app) => app
         .post('/login', async (ctx) =>
         {
@@ -32,6 +56,7 @@ export const serverApp = new Elysia()
             {
                 return Fail('Points must be an integer');
             }
+            broadcastLeaderboardUpdate();
             return await vote(data.workId, data.points, data.userId);
         })
         .get('/query_vote', async (ctx) =>
@@ -70,5 +95,10 @@ export const serverApp = new Elysia()
             }
             const user = await usersCollection.findOne({ userId }) as { username: string, password: string, userId: string, _id?: unknown };
             return Ok(user.username);
+        })
+        .get('/user_count', async () =>
+        {
+            const users = await usersCollection.countDocuments();
+            return Ok(users.toString());
         })
     )

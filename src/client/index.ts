@@ -12,3 +12,7 @@ export const clientApp = new Elysia()
     {
         return Bun.file('./static/index.html');
     })
+    .get('/leaderboard', () =>
+    {
+        return Bun.file('./static/leaderboard.html');
+    })
