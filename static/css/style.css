@@ -1,0 +1,264 @@
+/* 全局重置与基础样式 */
+:root {
+    --primary-color: #4a90e2;
+    /* 主色调：蓝色 */
+    --primary-hover: #357abd;
+    --bg-color: #f4f6f9;
+    /* 背景色：淡灰 */
+    --card-bg: #ffffff;
+    /* 卡片背景：白 */
+    --text-color: #333333;
+    --text-light: #666666;
+    --border-radius: 8px;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* 容器卡片样式：这是美化的核心 */
+.container {
+    background-color: var(--card-bg);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 400px;
+    /* 默认宽度，榜单页会覆盖此宽度 */
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+
+/* 链接样式优化 */
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+/* 输入框样式 */
+input {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+/* 按钮样式 */
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+button:hover {
+    background-color: var(--primary-hover);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* 特殊：首页链接改成按钮外观 */
+.home-nav a {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    background-color: white;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    border-radius: var(--border-radius);
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.home-nav a:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* 表格样式 (用于 Leaderboard) */
+.table-responsive {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th,
+td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    background-color: #f8f9fa;
+    color: #444;
+    font-weight: 600;
+}
+
+tr:hover {
+    background-color: #fafafa;
+}
+
+/* Login 页面的提示框 */
+#goto-vote {
+    background-color: #e3f2fd;
+    padding: 15px;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+    text-align: left;
+    font-size: 0.9rem;
+    color: #0d47a1;
+}
+
+#goto-vote p {
+    margin-bottom: 5px;
+}
+
+#user-info {
+    margin-bottom: 15px;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* Vote 页面特定的布局调整 */
+.input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.input-group input {
+    margin-bottom: 0;
+    flex: 1;
+}
+
+.input-group button {
+    width: auto;
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+#select-div {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+/* --- 下拉选择框美化 (追加到 style.css) --- */
+
+/* 包裹层：用于定位自定义箭头 */
+.select-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+/* 核心 Select 样式 */
+.select-wrapper select {
+    width: 100%;
+    padding: 12px 40px 12px 15px;
+    /* 右侧留出空间给箭头 */
+    font-size: 1rem;
+    color: var(--text-color);
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+
+    /* 关键：移除原生默认样式（箭头等） */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* 鼠标悬停和聚焦效果 */
+.select-wrapper select:hover {
+    border-color: #bbb;
+}
+
+.select-wrapper select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    outline: none;
+}
+
+/* 自定义箭头 (使用 CSS 绘制一个小三角) */
+.select-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    /* 让点击穿透到 select 上 */
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid var(--text-light);
+    /* 箭头颜色 */
+    transform: translateY(-50%);
+    transition: transform 0.2s;
+}
+
+/* 当 select 被打开时（聚焦时），稍微旋转箭头（视浏览器支持而定，通常作为一种交互反馈） */
+.select-wrapper:focus-within::after {
+    transform: translateY(-50%) rotate(180deg);
+    border-top-color: var(--primary-color);
+}
+
+/* 标签样式 (可选，JS中添加) */
+.select-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: var(--text-color);
+    text-align: left;
+}

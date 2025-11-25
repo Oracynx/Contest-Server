@@ -4,17 +4,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title>投票打分</title>
 
+    <link rel="stylesheet" href="./css/style.css">
     <script src="./js/vote.js" defer></script>
 </head>
 
 <body>
 
-    <div id="select-div"></div>
-    <input id="points-input" type="number" placeholder="请输入评分"><button id="vote-button">打分</button><br>
-    <input id="message-input" type="text" placeholder="对这个作评的评价"><button id="message-button">提交</button><br>
-    <a href="/login">返回登录界面</a>
+    <div class="container">
+        <h2 style="margin-bottom: 20px;">作品评分</h2>
+
+        <div id="select-div">
+            <!-- 你的 JS 会在这里插入内容，建议在 JS 里生成的元素尽量简洁 -->
+        </div>
+
+        <div class="input-group">
+            <input id="points-input" type="number" placeholder="请输入评分">
+            <button id="vote-button">打分</button>
+        </div>
+
+        <div class="input-group">
+            <input id="message-input" type="text" placeholder="对这个作品的评价">
+            <button id="message-button">提交</button>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center;">
+            <a href="/login">返回登录界面</a>
+        </div>
+        </div>
 
 </body>
 

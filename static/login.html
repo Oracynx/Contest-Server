@@ -4,25 +4,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title>登录</title>
 
+    <link rel="stylesheet" href="./css/style.css">
     <script src="./js/login.js" defer></script>
 </head>
 
 <body>
 
-    <p id="user-info"></p>
+    <div class="container">
+        <h2 style="margin-bottom: 20px;">用户登录</h2>
+        <p id="user-info"></p>
 
-    <div id="goto-vote">
-        <p>您可能希望：</p>
-        <p>前往<a href="/vote">投票页面</a></p>
-        <p>前往<a href="/">返回首页</a></p>
+        <div id="goto-vote">
+            <p><strong>您可能希望：</strong></p>
+            <p>• 前往 <a href="/vote">投票页面</a></p>
+            <p>• 前往 <a href="/">返回首页</a></p>
+            </div>
+
+        <!-- 这里的 hidden 属性由你的 JS 控制，CSS 不会强制显示它 -->
+        <input id="username-input" placeholder="输入用户名" autocomplete="username">
+        <input id="password-input" placeholder="输入密码" type="password" hidden autocomplete="current-password">
+
+        <button id="login-button">登录</button>
     </div>
-
-    <input id="username-input" placeholder="输入用户名">
-    <input id="password-input" placeholder="输入密码" type="password" hidden>
-
-    <button id="login-button">登录</button>
 
 </body>
 

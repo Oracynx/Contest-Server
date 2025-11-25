@@ -43,8 +43,23 @@ async function updateList()
         const container = document.getElementById('select-div');
         if (!container) return;
         container.innerHTML = '';
+
+        // --- 美化修改开始 ---
+
+        // 1. 创建一个 Label，让用户知道这里选什么 (可选，为了美观推荐加上)
+        const label = document.createElement('div');
+        label.className = 'select-label';
+        label.textContent = '当前正在展示的作品：';
+        container.appendChild(label);
+
+        // 2. 创建包裹层 div
+        const wrapper = document.createElement('div');
+        wrapper.className = 'select-wrapper';
+
+        // 3. 创建 select (逻辑不变)
         const select = document.createElement('select');
-        select.id = 'work-select';
+        select.id = 'work-select'; // 保持 ID 不变，不破坏原有逻辑
+
         works.forEach(work =>
         {
             const option = document.createElement('option');
@@ -56,11 +71,17 @@ async function updateList()
             }
             select.appendChild(option);
         });
+
         select.addEventListener('change', async () =>
         {
             showSuccess(`已选择作品：${await toWorkTitle(select.value)}`);
         });
-        container.appendChild(select);
+
+        // 4. 组装 DOM：select -> wrapper -> container
+        wrapper.appendChild(select);
+        container.appendChild(wrapper);
+
+        // --- 美化修改结束 ---
     });
 }
 
