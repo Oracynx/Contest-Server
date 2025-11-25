@@ -66,9 +66,9 @@ async function updateLeaderboard()
             scoreCell.textContent = item.score.toFixed(2);
             row.appendChild(scoreCell);
 
-            const variCell = document.createElement('td');
+            /* const variCell = document.createElement('td');
             variCell.textContent = item.vari.toFixed(2);
-            row.appendChild(variCell);
+            row.appendChild(variCell); */
 
             const countCell = document.createElement('td');
             countCell.textContent = `${item.count} / ${usersCount} (${((item.count / usersCount) * 100).toFixed(2)}%)`;
