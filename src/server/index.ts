@@ -4,13 +4,24 @@ import { messagesCollection, usersCollection, worksCollection } from './database
 import { Fail, Ok } from './utils/def';
 import { queryVote, vote } from './works';
 import type { ServerWebSocket } from 'bun';
+import { defaultWork } from '../admin';
 
-const ClientSet = new Set<ServerWebSocket<any>>();
+const LeaderboardClientSet = new Set<ServerWebSocket<any>>();
+const VoteDefaultClientSet = new Set<ServerWebSocket<any>>();
 
 async function broadcastLeaderboardUpdate()
 {
     const message = JSON.stringify({ type: 'vote', data: '' });
-    for (const client of ClientSet)
+    for (const client of LeaderboardClientSet)
+    {
+        client.send(message);
+    }
+}
+
+export async function broadcastVoteDefaultUpdate(workId: string)
+{
+    const message = JSON.stringify({ type: 'default_work', data: workId });
+    for (const client of VoteDefaultClientSet)
     {
         client.send(message);
     }
@@ -21,11 +32,21 @@ export const serverApp = new Elysia()
         .ws('/leaderboard', {
             open(ws)
             {
-                ClientSet.add(ws.raw as ServerWebSocket<any>);
+                LeaderboardClientSet.add(ws.raw as ServerWebSocket<any>);
             },
             close(ws)
             {
-                ClientSet.delete(ws.raw as ServerWebSocket<any>);
+                LeaderboardClientSet.delete(ws.raw as ServerWebSocket<any>);
+            }
+        })
+        .ws('/vote_default_work', {
+            open(ws)
+            {
+                VoteDefaultClientSet.add(ws.raw as ServerWebSocket<any>);
+            },
+            close(ws)
+            {
+                VoteDefaultClientSet.delete(ws.raw as ServerWebSocket<any>);
             }
         })
     )
@@ -96,9 +117,24 @@ export const serverApp = new Elysia()
             const user = await usersCollection.findOne({ userId }) as { username: string, password: string, userId: string, _id?: unknown };
             return Ok(user.username);
         })
+        .get('/work_info', async (ctx) =>
+        {
+            const data = ctx.query as { workId: string };
+            const workId = data.workId;
+            const work = await worksCollection.findOne({ workId }) as { title: string; workId: string; _id?: unknown };
+            if (!work)
+            {
+                return Fail('作品未找到');
+            }
+            return Ok(work.title);
+        })
         .get('/user_count', async () =>
         {
             const users = await usersCollection.countDocuments();
             return Ok(users.toString());
+        })
+        .get('/default_work', async () =>
+        {
+            return Ok(defaultWork);
         })
     )

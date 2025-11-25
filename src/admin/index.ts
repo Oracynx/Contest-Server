@@ -4,6 +4,9 @@ import { registerUser } from '../server/auth/utils';
 import { messagesCollection, usersCollection, votesCollection, worksCollection } from '../server/database';
 import { randomUUIDv7 } from 'bun';
 import { Ok } from '../server/utils/def';
+import { broadcastVoteDefaultUpdate } from '../server';
+
+export let defaultWork = 'none';
 
 export const adminApp = new Elysia()
     .group('/admin', (app) => app
@@ -126,5 +129,17 @@ export const adminApp = new Elysia()
                 delete item._id;
             })
             return { success: true, data: messages };
+        })
+        .post('/set_default_work', async (ctx) =>
+        {
+            const token = ctx.headers['x-api-key'];
+            if (token != SecretKey)
+            {
+                return { success: false, data: 'Invalid API Key' };
+            }
+            const data = ctx.body as { workId: string };
+            await broadcastVoteDefaultUpdate(data.workId);
+            defaultWork = data.workId;
+            return Ok('Default work set to ' + data.workId);
         })
     );
