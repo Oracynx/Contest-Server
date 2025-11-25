@@ -1,3 +1,5 @@
+// 将此文件中的配置填写完毕后，重命名文件夹为 src/config.template -> src/config
+
 export const DatabaseConfig = {
     url: 'mongodb://localhost:27017',
 }
