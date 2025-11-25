@@ -73,6 +73,10 @@ export const serverApp = new Elysia()
             {
                 return Fail('身份验证失败');
             }
+            if (!await worksCollection.findOne({ workId: data.workId }))
+            {
+                return Fail('作品未找到');
+            }
             if (Math.floor(data.points) !== data.points)
             {
                 return Fail('评分必须为整数');
@@ -99,11 +103,17 @@ export const serverApp = new Elysia()
             {
                 return Fail('身份验证失败');
             }
+            if (!await worksCollection.findOne({ workId: data.workId }))
+            {
+                return Fail('作品未找到');
+            }
             if (data.message.length > 500)
             {
                 return Fail('消息过长');
             }
-            await messagesCollection.insertOne({ userId: data.userId, workId: data.workId, message: data.message });
+            await messagesCollection.insertOne({
+                userId: data.userId, workId: data.workId, message: data.message, timestamp: Math.floor(Date.now() / 1000),
+            });
             return Ok('消息已记录');
         })
         .get('/user_info', async (ctx) =>
