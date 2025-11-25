@@ -1,4 +1,3 @@
-import { MaxiumPoints, MiniumPoints } from '../../src/config';
 import { init, showError, showSuccess, toWorkTitle, type Res } from './utils/base';
 
 let serverCurrentWorkId = '';
@@ -178,9 +177,6 @@ init('Vote', true).then(
         await fetchInitialStatus();
         updateList();
         initWebSocket();
-        pointsInput.min = MiniumPoints.toString();
-        pointsInput.max = MaxiumPoints.toString();
-        pointsInput.placeholder = `请输入评分 [${MiniumPoints}, ${MaxiumPoints}]`;
     }
 );
 
