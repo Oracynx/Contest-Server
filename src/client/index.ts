@@ -24,3 +24,7 @@ export const clientApp = new Elysia()
     {
         return Bun.file('./static/vote.html');
     })
+    .get('/admin', () =>
+    {
+        return Bun.file('./static/admin.html');
+    })
