@@ -7,6 +7,36 @@ export type Res = {
     data: string,
 }
 
+export async function toWorkTitle(workId: string)
+{
+    return await fetch('/api/work_info?workId=' + workId).then(res => res.json()).then((data: Res) =>
+    {
+        if (data.success)
+        {
+            return data.data as string;
+        }
+        else
+        {
+            return '未知作品';
+        }
+    });
+}
+
+export async function toUserName(userId: string)
+{
+    return await fetch('/api/user_info?userId=' + userId).then(res => res.json()).then((data: Res) =>
+    {
+        if (data.success)
+        {
+            return data.data as string;
+        }
+        else
+        {
+            return '未知用户';
+        }
+    });
+}
+
 async function loadCSS(url: string)
 {
     const link = document.createElement("link");
