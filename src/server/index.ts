@@ -24,7 +24,7 @@ export const serverApp = new Elysia()
         {
             const data = ctx.body as { workId: string, points: number, userId: string };
             const userId = data.userId;
-            if (!auth(userId))
+            if (!await auth(userId))
             {
                 return Fail('Authentication failed');
             }
