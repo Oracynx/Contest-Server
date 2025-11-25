@@ -1,7 +1,7 @@
 import Elysia from 'elysia';
 import { SecretKey } from '../config';
 import { registerUser } from '../server/auth/utils';
-import { usersCollection, worksCollection } from '../server/database';
+import { messagesCollection, usersCollection, votesCollection, worksCollection } from '../server/database';
 import { randomUUIDv7 } from 'bun';
 import { Ok } from '../server/utils/def';
 
@@ -48,6 +48,28 @@ export const adminApp = new Elysia()
             await worksCollection.deleteMany({});
             return Ok('All works removed');
         })
+        .post('/remove_votes', async (ctx) =>
+        {
+            const token = ctx.headers['x-api-key'];
+            if (token != SecretKey)
+            {
+                return { success: false, data: 'Invalid API Key' };
+            }
+            const { votesCollection } = await import('../server/database');
+            await votesCollection.deleteMany({});
+            return Ok('All votes removed');
+        })
+        .post('/remove_messages', async (ctx) =>
+        {
+            const token = ctx.headers['x-api-key'];
+            if (token != SecretKey)
+            {
+                return { success: false, data: 'Invalid API Key' };
+            }
+            const { messagesCollection } = await import('../server/database');
+            await messagesCollection.deleteMany({});
+            return Ok('All messages removed');
+        })
         .get('/list_users', async (ctx) =>
         {
             const token = ctx.headers['x-api-key'];
@@ -76,5 +98,33 @@ export const adminApp = new Elysia()
                 delete item._id;
             })
             return { success: true, data: works };
+        })
+        .get('/list_votes', async (ctx) =>
+        {
+            const token = ctx.headers['x-api-key'];
+            if (token != SecretKey)
+            {
+                return { success: false, data: 'Invalid API Key' };
+            }
+            const votes = await votesCollection.find({}).toArray() as Array<{ workId: string; userId: string; points: number; _id?: unknown }>;
+            votes.forEach(item =>
+            {
+                delete item._id;
+            })
+            return { success: true, data: votes };
+        })
+        .get('/list_messages', async (ctx) =>
+        {
+            const token = ctx.headers['x-api-key'];
+            if (token != SecretKey)
+            {
+                return { success: false, data: 'Invalid API Key' };
+            }
+            const messages = await messagesCollection.find({}).toArray() as Array<{ workId: string; userId: string; message: string; _id?: unknown }>;
+            messages.forEach(item =>
+            {
+                delete item._id;
+            })
+            return { success: true, data: messages };
         })
     );
