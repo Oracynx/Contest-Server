@@ -50,11 +50,11 @@ export const serverApp = new Elysia()
             const userId = data.userId;
             if (!await auth(userId))
             {
-                return Fail('Authentication failed');
+                return Fail('身份验证失败');
             }
             if (Math.floor(data.points) !== data.points)
             {
-                return Fail('Points must be an integer');
+                return Fail('评分必须为整数');
             }
             broadcastLeaderboardUpdate();
             return await vote(data.workId, data.points, data.userId);
@@ -66,7 +66,7 @@ export const serverApp = new Elysia()
             const work = await worksCollection.findOne({ workId });
             if (!work)
             {
-                return Fail('Work not found');
+                return Fail('作品未找到');
             }
             return { success: true, data: await queryVote(workId) };
         })
@@ -76,14 +76,14 @@ export const serverApp = new Elysia()
             const userId = data.userId;
             if (!await auth(userId))
             {
-                return Fail('Authentication failed');
+                return Fail('身份验证失败');
             }
             if (data.message.length > 500)
             {
-                return Fail('Message too long');
+                return Fail('消息过长');
             }
             await messagesCollection.insertOne({ userId: data.userId, workId: data.workdId, message: data.message });
-            return Ok('Message recorded');
+            return Ok('消息已记录');
         })
         .get('/user_info', async (ctx) =>
         {
@@ -91,7 +91,7 @@ export const serverApp = new Elysia()
             const userId = data.userId;
             if (!await auth(userId))
             {
-                return Fail('User not found');
+                return Fail('用户未找到');
             }
             const user = await usersCollection.findOne({ userId }) as { username: string, password: string, userId: string, _id?: unknown };
             return Ok(user.username);

@@ -7,7 +7,7 @@ export async function registerUser(user: { username: string, password: string })
 {
     if (await usersCollection.findOne({ username: user.username }))
     {
-        return Fail('Username already exists');
+        return Fail('用户已存在');
     }
     const userId = randomUUIDv7();
     await usersCollection.insertOne({ username: user.username, password: user.password, userId });
@@ -19,11 +19,11 @@ export async function tryLogin(userinfo: { username: string, password: string })
     const user = await usersCollection.findOne({ username: userinfo.username })
     if (!user)
     {
-        return Fail('Username does not exist');
+        return Fail('用户未找到');
     }
     if (!SkipPasswordCheck && user.password !== userinfo.password)
     {
-        return Fail('Incorrect password');
+        return Fail('密码错误');
     }
     return Ok(user.userId);
 }
