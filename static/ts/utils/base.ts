@@ -95,7 +95,7 @@ async function checkLogin()
 export async function init(pagename = '', needLogin = false)
 {
     Clarity.init(MicrosoftClarityId);
-    await loadCSS('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css');
+    await loadCSS('./vendor/toastify.min.css');
     document.title = (pagename ? pagename + ' - ' : '') + BasePagename;
     if (needLogin)
     {
