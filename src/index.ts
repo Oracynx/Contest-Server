@@ -9,8 +9,3 @@ const app = new Elysia()
     .use(adminApp)
 
 app.listen(8080);
-
-for (const route of app.routes)
-{
-    console.log(`${route.method} ${route.path}`)
-}
