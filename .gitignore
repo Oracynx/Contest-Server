@@ -38,3 +38,6 @@ src/config
 
 # Builds
 static/js
+
+# Assets
+static/work_images

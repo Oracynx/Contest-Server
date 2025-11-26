@@ -59,6 +59,26 @@
 
         <div class="section-divider"></div>
 
+        <h3>作品图片管理</h3>
+        <div class="file-upload-group">
+            <p>为作品上传封面图（将保存为 PNG 格式）：</p>
+        
+            <!-- 这里复用 select-wrapper 的样式 -->
+            <div id="img-upload-select-container" style="margin-bottom: 10px;">
+                <select id="img-work-select" class="input-group"
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                    <option value="">加载中...</option>
+                </select>
+            </div>
+        
+            <div class="input-group">
+                <input type="file" id="work-image-file" accept="image/*">
+                <button id="upload-img-btn">上传封面</button>
+            </div>
+        </div>
+        
+        <div class="section-divider"></div>
+
         <!-- 4. 手动单条添加 -->
         <h3>手动添加</h3>
         <div class="input-group">

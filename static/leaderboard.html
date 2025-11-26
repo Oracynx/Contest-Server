@@ -79,6 +79,43 @@
         .font-bold { font-weight: bold; }
         .score-txt { color: var(--primary-color); }
         .count-txt { font-size: 0.8rem; color: #999; }
+
+        /* --- 新增：作品信息区域样式 --- */
+
+        /* 1. 容器：Flex 布局确保图片和文字在同一行，并垂直居中 */
+        .work-info {
+            display: flex;
+            align-items: center;      /* 垂直居中 */
+            justify-content: center; /* 水平左对齐（标题类通常左对齐） */
+            height: 100%;
+            width: 100%;
+            overflow: hidden;         /* 防止内容溢出 */
+        }
+
+        /* 2. 图片：卡片效果、圆角、固定尺寸 */
+        .work-thumb {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;       /* 圆角 */
+            object-fit: cover;        /* 保持图片比例填充，不拉伸 */
+            
+            /* 卡片效果：边框 + 轻微阴影 */
+            border: 1px solid #eee;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            
+            margin-right: 12px;       /* 图片与文字的间距 */
+            flex-shrink: 0;           /* 关键：防止标题过长时图片被挤压 */
+            background-color: #f8f9fa;/* 图片加载失败时的占位背景色 */
+        }
+
+        /* 3. 标题文字：单行显示，超长省略 */
+        .title-txt {
+            font-weight: 600;         /* 稍微加粗 */
+            color: #333;
+            white-space: nowrap;      /* 强制不换行 */
+            overflow: hidden;
+            text-overflow: ellipsis;  /* 超出部分显示省略号 */
+        }
     </style>
     
     <script src="./js/leaderboard.js" defer></script>

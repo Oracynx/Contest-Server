@@ -96,6 +96,19 @@ async function refreshWorksList()
     const select = document.createElement('select');
     select.id = 'admin-work-select';
 
+    const imgSelect = document.getElementById('img-work-select') as HTMLSelectElement;
+    if (imgSelect)
+    {
+        imgSelect.innerHTML = '<option value="">请选择作品...</option>';
+        works.forEach(w =>
+        {
+            const opt = document.createElement('option');
+            opt.value = w.workId;
+            opt.textContent = w.title;
+            imgSelect.appendChild(opt);
+        });
+    }
+
     // 添加一个默认空选项
     const defaultOption = document.createElement('option');
     defaultOption.text = '请选择要广播的作品...';
@@ -360,6 +373,61 @@ document.getElementById('del-users-btn')?.addEventListener('click', () => confir
 document.getElementById('del-works-btn')?.addEventListener('click', () => confirmAndClear('/admin/remove_works', '作品'));
 document.getElementById('del-votes-btn')?.addEventListener('click', () => confirmAndClear('/admin/remove_votes', '投票'));
 document.getElementById('del-msgs-btn')?.addEventListener('click', () => confirmAndClear('/admin/remove_messages', '留言'));
+
+document.getElementById('upload-img-btn')?.addEventListener('click', async () =>
+{
+    const select = document.getElementById('img-work-select') as HTMLSelectElement;
+    const fileInput = document.getElementById('work-image-file') as HTMLInputElement;
+
+    if (!select.value)
+    {
+        showError('请先选择一个作品');
+        return;
+    }
+    if (!fileInput.files || fileInput.files.length === 0)
+    {
+        showError('请选择图片文件');
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('workId', select.value);
+    formData.append('image', file as File);
+
+    const selectedOptionText = select.selectedOptions?.[0]?.text ?? select.options?.[select.selectedIndex]?.text ?? '';
+    log(`正在上传作品 [${selectedOptionText}] 的封面...`);
+
+    // 这里不能用 requestAdmin 的 JSON 模式，因为要传 FormData
+    // 我们手动写 fetch
+    const apiKey = (document.getElementById('api-key-input') as HTMLInputElement).value.trim();
+    try
+    {
+        const res = await fetch('/admin/upload_work_image', {
+            method: 'POST',
+            headers: {
+                'x-api-key': apiKey
+                // 注意：不要手动设置 Content-Type，浏览器会自动识别 FormData 并设置 boundary
+            },
+            body: formData
+        });
+        const data = await res.json();
+        if (data.success)
+        {
+            showSuccess('图片上传成功');
+            log('图片上传成功');
+            fileInput.value = ''; // 清空选择
+        } else
+        {
+            showError(data.data);
+            log(data.data, true);
+        }
+    } catch (e)
+    {
+        showError('上传请求失败');
+        log(String(e), true);
+    }
+});
 
 
 // ----------------------------------------------------------------------
