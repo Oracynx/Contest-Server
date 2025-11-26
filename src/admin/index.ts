@@ -140,6 +140,6 @@ export const adminApp = new Elysia()
             const data = ctx.body as { workId: string };
             await broadcastVoteDefaultUpdate(data.workId);
             defaultWork = data.workId;
-            return Ok('已将所有用户的作品切换到' + data.workId);
+            return Ok('已将所有用户的作品切换到 ' + data.workId);
         })
     );
