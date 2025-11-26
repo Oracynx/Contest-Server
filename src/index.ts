@@ -8,4 +8,4 @@ const app = new Elysia()
     .use(serverApp)
     .use(adminApp)
 
-app.listen(7070);
+app.listen(8080);
