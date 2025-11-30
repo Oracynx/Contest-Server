@@ -1,7 +1,7 @@
 import Elysia from 'elysia';
 import { SecretKey } from '../config';
 import { registerUser } from '../server/auth/utils';
-import { messagesCollection, usersCollection, votesCollection, worksCollection } from '../server/database';
+import { luckysCollection, messagesCollection, usersCollection, votesCollection, worksCollection } from '../server/database';
 import { randomUUIDv7 } from 'bun';
 import { Ok } from '../server/utils/def';
 import { broadcastVoteDefaultUpdate } from '../server';
@@ -60,7 +60,6 @@ export const adminApp = new Elysia()
             {
                 return { success: false, data: '未授权的密钥' };
             }
-            const { votesCollection } = await import('../server/database');
             await votesCollection.deleteMany({});
             return Ok('已删除所有投票');
         })
@@ -71,9 +70,18 @@ export const adminApp = new Elysia()
             {
                 return { success: false, data: '未授权的密钥' };
             }
-            const { messagesCollection } = await import('../server/database');
             await messagesCollection.deleteMany({});
             return Ok('已删除所有留言');
+        })
+        .post('/remove_luckys', async (ctx) =>
+        {
+            const token = ctx.headers['x-api-key'];
+            if (token != SecretKey)
+            {
+                return { success: false, data: '未授权的密钥' };
+            }
+            await luckysCollection.deleteMany({});
+            return Ok('已删除所有幸运儿');
         })
         .get('/list_users', async (ctx) =>
         {
@@ -214,8 +222,33 @@ export const adminApp = new Elysia()
             if (!data.workId) return { success: false, data: '缺少 workId' };
 
             const res = await worksCollection.deleteOne({ workId: data.workId });
-            // 可选：顺带删除该作品的关联投票或图片，这里仅演示删除作品本身
             return Ok(`操作完成，已删除 ${res.deletedCount} 个作品`);
         })
-
+        .post('/add_lucky_people', async (ctx) =>
+        {
+            const token = ctx.headers['x-api-key'];
+            if (token != SecretKey)
+            {
+                return { success: false, data: '未授权的密钥' };
+            }
+            const data = ctx.body as { name: string };
+            if (!data.name)
+            {
+                return { success: false, data: '缺少姓名' };
+            }
+            await luckysCollection.insertOne({ name: data.name });
+            return Ok('添加成功');
+        })
+        .get('/list_luckys', async (ctx) =>
+        {
+            const token = ctx.headers['x-api-key'];
+            if (token != SecretKey)
+            {
+                return { success: false, data: '未授权的密钥' };
+            }
+            const list = await luckysCollection.find({}).toArray();
+            // 按照前端需求，仅返回 name 字符串数组
+            const names = list.map((l: any) => l.name);
+            return { success: true, data: names };
+        })
     );

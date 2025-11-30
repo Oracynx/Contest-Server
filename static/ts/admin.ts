@@ -398,6 +398,69 @@ document.getElementById('add-work-btn')?.addEventListener('click', async () =>
     }
 });
 
+// 1. 添加抽奖人员
+document.getElementById('add-lucky-btn')?.addEventListener('click', async () =>
+{
+    const input = document.getElementById('lucky-name-input') as HTMLInputElement;
+    const name = input.value.trim();
+
+    if (!name)
+    {
+        showError('请输入名称');
+        return;
+    }
+
+    const res = await requestAdmin('/admin/add_lucky_people', 'POST', { name });
+
+    if (res.success)
+    {
+        showSuccess('已添加到名单');
+        log(`添加抽奖人 [${name}] 成功`);
+        input.value = '';
+    } else
+    {
+        showError(res.data);
+        log(res.data, true);
+    }
+});
+
+// 2. 列出名单
+document.getElementById('list-luckys-btn')?.addEventListener('click', async () =>
+{
+    // 复用之前的 list 逻辑，注意这里的接口签名也是 {success, data: []}
+    log('正在获取抽奖名单...');
+    const res = await requestAdmin('/admin/list_luckys', 'GET'); // 假设 admin 侧是 GET 或 POST 皆可，根据你后端定
+
+    if (res.success)
+    {
+        const list = res.data;
+        log(`当前抽奖池 (${Array.isArray(list) ? list.length : 0}人):\n${JSON.stringify(list, null, 2)}`);
+    } else
+    {
+        showError(res.data);
+        log(res.data, true);
+    }
+});
+
+// 3. 清空名单
+document.getElementById('clear-luckys-btn')?.addEventListener('click', async () =>
+{
+    if (!confirm('确定要清空所有抽奖名单吗？')) return;
+
+    log('正在清空抽奖池...');
+    // 注意：你描述的接口是 /admin/remove_luckys (no body)
+    const res = await requestAdmin('/admin/remove_luckys', 'POST');
+
+    if (res.success)
+    {
+        showSuccess('抽奖池已清空');
+        log('抽奖池已清空');
+    } else
+    {
+        showError(res.data);
+        log(res.data, true);
+    }
+});
 
 // ----------------------------------------------------------------------
 // 5. 数据列表查询

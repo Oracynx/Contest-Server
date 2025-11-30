@@ -30,8 +30,12 @@ export type messageSchema = {
     timestamp: number,
 }
 
+export type luckySchema = {
+    name: string,
+}
 
 export const usersCollection = db.collection<userSchema>('Users');
 export const worksCollection = db.collection<workSchema>('Works');
 export const votesCollection = db.collection<voteSchema>('Votes');
-export const messagesCollection = db.collection('Messages');
+export const messagesCollection = db.collection<messageSchema>('Messages');
+export const luckysCollection = db.collection<luckySchema>('Luckys');

@@ -1,6 +1,6 @@
 import Elysia from 'elysia';
 import { auth, tryLogin } from './auth/utils';
-import { messagesCollection, usersCollection, worksCollection } from './database';
+import { luckysCollection, messagesCollection, usersCollection, worksCollection } from './database';
 import { Fail, Ok } from './utils/def';
 import { queryVote, vote } from './works';
 import type { ServerWebSocket } from 'bun';
@@ -146,5 +146,11 @@ export const serverApp = new Elysia()
         .get('/default_work', async () =>
         {
             return Ok(defaultWork);
+        })
+        .get('/luckys', async () =>
+        {
+            const list = await luckysCollection.find({}).toArray();
+            const names = list.map((l: any) => l.name);
+            return { success: true, data: names };
         })
     )

@@ -28,3 +28,7 @@ export const clientApp = new Elysia()
     {
         return Bun.file('./static/admin.html');
     })
+    .get('/lucky', () =>
+    {
+        return Bun.file('./static/lucky.html');
+    })

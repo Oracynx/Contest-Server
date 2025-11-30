@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幸运大转盘</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        h1 { color: #333; margin-bottom: 20px; }
+
+        .wheel-container {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 50%;
+            background: white;
+            padding: 10px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        
+        canvas:active { transform: scale(0.98); }
+
+        /* 指针样式 */
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 60px;
+            background: #e74c3c;
+            clip-path: polygon(100% 0, 50% 100%, 0 0);
+            z-index: 10;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        /* 中心按钮/装饰 */
+        .center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+            pointer-events: none; /* 让点击穿透到 canvas */
+        }
+
+        .winner-modal {
+            margin-top: 30px;
+            font-size: 1.5rem;
+            color: #2c3e50;
+            font-weight: bold;
+            height: 40px;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .wheel-container { width: 320px; height: 320px; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>幸运抽奖</h1>
+
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <canvas id="wheelCanvas" width="800" height="800"></canvas>
+        <div class="center-circle">GO</div>
+    </div>
+
+    <div class="winner-modal" id="result-text">点击转盘开始</div>
+
+    <script src="./js/lucky.js" defer></script>
+</body>
+</html>
