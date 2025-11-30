@@ -1,276 +1,590 @@
-// lucky.ts
+import { init, showError, showSuccess, type Res } from './utils/base';
 
-import { init } from './utils/base';
+// ----------------------------------------------------------------------
+// 1. 基础配置与工具
+// ----------------------------------------------------------------------
 
-// 1. 获取 DOM 元素
-const rollerList = document.getElementById('rollerList') as HTMLUListElement;
-const startBtn = document.getElementById('startBtn') as HTMLButtonElement;
-const resultText = document.getElementById('result-text') as HTMLDivElement;
+const LOCAL_STORAGE_KEY = 'admin_api_key';
+const apiKeyInput = document.getElementById('api-key-input') as HTMLInputElement;
+const saveKeyBtn = document.getElementById('save-key-btn') as HTMLButtonElement;
+const logOutput = document.getElementById('log-output') as HTMLDivElement;
 
-// 2. 配置参数
-let sourceNames: string[] = []; // 原始名单池
-let sequenceCache: string[] = []; // 已生成的随机序列缓存
-const ITEM_HEIGHT = 60;
-const VIEWPORT_HEIGHT = 240;
-// 视口能容纳 4 个，我们在上下各加 1-2 个缓冲区，防止快速滚动时出现白边
-const RENDER_COUNT = Math.ceil(VIEWPORT_HEIGHT / ITEM_HEIGHT) + 4; 
-
-// 滚动状态
-let isRolling = false;
-let animationId: number;
-
-// currentOffset 定义为：列表顶部距离视口顶部的逻辑像素距离
-// 初始状态下，为了让第0个元素居中：
-// 视口中线(120) - 元素一半(30) = 90。
-// 意味着第0个元素在 y=90 的位置。
-// 我们的坐标系：ItemY = Index * Height - currentOffset.
-// 所以 90 = 0 * 60 - currentOffset  =>  currentOffset = -90.
-const CENTER_OFFSET = (VIEWPORT_HEIGHT / 2) - (ITEM_HEIGHT / 2);
-let currentOffset = -CENTER_OFFSET; 
-
-let speed = 0;
-const MAX_SPEED = 50;
-const MIN_SPEED = 0.5; 
-
-init('Lucky', false).then(async () =>
+// 简单的日志输出函数
+function log(msg: string, isError: boolean = false)
 {
+    const time = new Date().toLocaleTimeString();
+    const prefix = isError ? '[ERROR]' : '[INFO]';
+    const line = `[${time}] ${prefix} ${msg}\n`;
+    logOutput.innerText = line + logOutput.innerText; // 新日志在最上面
+    console.log(msg);
+}
+
+// 封装带 API Key 的请求
+async function requestAdmin(path: string, method: 'GET' | 'POST', body?: any): Promise<Res>
+{
+    const apiKey = apiKeyInput.value.trim();
+    if (!apiKey)
+    {
+        showError('请先输入并保存 API Key');
+        return { success: false, data: 'Missing API Key' };
+    }
+
     try
     {
-        const res = await fetch('/api/luckys');
-        const json = await res.json() as { success: boolean, data: string[] };
+        const options: RequestInit = {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey
+            }
+        };
 
-        if (json.success && Array.isArray(json.data) && json.data.length > 0)
+        if (body)
         {
-            sourceNames = json.data;
+            options.body = JSON.stringify(body);
+        }
+
+        const res = await fetch(path, options);
+        return await res.json();
+    } catch (e)
+    {
+        return { success: false, data: String(e) };
+    }
+}
+
+// 保存 API Key
+saveKeyBtn.addEventListener('click', () =>
+{
+    const key = apiKeyInput.value.trim();
+    if (key)
+    {
+        localStorage.setItem(LOCAL_STORAGE_KEY, key);
+        showSuccess('API Key 已保存');
+        refreshWorksList(); // 保存后尝试刷新作品列表
+    } else
+    {
+        showError('API Key 不能为空');
+    }
+});
+
+// ----------------------------------------------------------------------
+// 2. 全局控制 (默认作品)
+// ----------------------------------------------------------------------
+
+async function refreshWorksList()
+{
+    const container = document.getElementById('work-select-container');
+    if (!container) return;
+
+    log('正在获取作品列表...');
+    const res = await requestAdmin('/admin/list_works', 'GET');
+
+    if (!res.success)
+    {
+        log('无法获取作品列表: ' + res.data, true);
+        container.innerHTML = '<p style="color:red">加载失败，请检查 API Key</p>';
+        return;
+    }
+
+    const works = res.data as any as Array<{ title: string; workId: string }>;
+    container.innerHTML = '';
+
+    // 使用美化的 select 结构
+    const wrapper = document.createElement('div');
+    wrapper.className = 'select-wrapper';
+
+    const select = document.createElement('select');
+    select.id = 'admin-work-select';
+
+    const imgSelect = document.getElementById('img-work-select') as HTMLSelectElement;
+    if (imgSelect)
+    {
+        imgSelect.innerHTML = '<option value="">请选择作品...</option>';
+        works.forEach(w =>
+        {
+            const opt = document.createElement('option');
+            opt.value = w.workId;
+            opt.textContent = w.title;
+            imgSelect.appendChild(opt);
+        });
+    }
+
+    // 添加一个默认空选项
+    const defaultOption = document.createElement('option');
+    defaultOption.text = '请选择要广播的作品...';
+    defaultOption.value = '';
+    select.appendChild(defaultOption);
+
+    works.forEach(w =>
+    {
+        const opt = document.createElement('option');
+        opt.value = w.workId;
+        opt.textContent = w.title;
+        select.appendChild(opt);
+    });
+
+    wrapper.appendChild(select);
+    container.appendChild(wrapper);
+    log(`成功加载 ${works.length} 个作品。`);
+}
+
+document.getElementById('set-default-btn')?.addEventListener('click', async () =>
+{
+    const select = document.getElementById('admin-work-select') as HTMLSelectElement;
+    if (!select || !select.value)
+    {
+        showError('请先选择一个作品');
+        return;
+    }
+
+    const res = await requestAdmin('/admin/set_default_work', 'POST', { workId: select.value });
+    if (res.success)
+    {
+        showSuccess(res.data);
+        log(res.data);
+    } else
+    {
+        showError(res.data);
+        log(res.data, true);
+    }
+});
+
+
+// ----------------------------------------------------------------------
+// 3. 批量操作 (文件上传)
+// ----------------------------------------------------------------------
+
+// 通用文件读取器
+function readFileContent(file: File): Promise<string>
+{
+    return new Promise((resolve, reject) =>
+    {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onerror = (e) => reject(e);
+        reader.readAsText(file);
+    });
+}
+
+document.getElementById('batch-users-btn')?.addEventListener('click', async () =>
+{
+    const fileInput = document.getElementById('batch-users-file') as HTMLInputElement;
+    if (!fileInput.files || fileInput.files.length === 0)
+    {
+        showError('请选择用户列表文件 (.txt)');
+        return;
+    }
+
+    try
+    {
+        const content = await readFileContent(fileInput.files[0] as File);
+        const lines = content.split(/\r?\n/);
+        let successCount = 0;
+        let failCount = 0;
+
+        log(`开始批量创建用户，共 ${lines.length} 行...`);
+
+        for (const line of lines)
+        {
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+
+            // [修改] 解析 CSV 格式: username, password, weight
+            const parts = trimmed.split(',');
+            const username = (parts[0] as string).trim();
+            const password = parts.length > 1 ? (parts[1] as string).trim() : '';
+            // 解析权重，如果未提供或解析失败则默认为 1
+            let weight = 1;
+            if (parts.length > 2)
+            {
+                const w = parseFloat(parts[2]?.trim() ?? '');
+                if (!isNaN(w))
+                {
+                    weight = w;
+                }
+            }
+
+            if (!username) continue;
+
+            const res = await requestAdmin('/admin/register', 'POST', { username, password, weight });
+            if (res.success)
+            {
+                successCount++;
+            } else
+            {
+                failCount++;
+                log(`创建用户 [${username}] 失败: ${res.data}`, true);
+            }
+        }
+
+        log(`批量用户创建完成: 成功 ${successCount}, 失败 ${failCount}`);
+        showSuccess(`完成：成功 ${successCount}，失败 ${failCount}`);
+
+        fileInput.value = '';
+    } catch (e)
+    {
+        showError('文件读取失败');
+        log(String(e), true);
+    }
+});
+
+// 批量创建作品
+document.getElementById('batch-works-btn')?.addEventListener('click', async () =>
+{
+    const fileInput = document.getElementById('batch-works-file') as HTMLInputElement;
+    if (!fileInput.files || fileInput.files.length === 0)
+    {
+        showError('请选择作品列表文件 (.txt)');
+        return;
+    }
+
+    try
+    {
+        const content = await readFileContent(fileInput.files[0] as File);
+        const lines = content.split(/\r?\n/);
+        let successCount = 0;
+        let failCount = 0;
+
+        log(`开始批量创建作品，共 ${lines.length} 行...`);
+
+        for (const line of lines)
+        {
+            const title = line.trim();
+            if (!title) continue;
+
+            const res = await requestAdmin('/admin/new_work', 'POST', { title });
+            if (res.success)
+            {
+                successCount++;
+            } else
+            {
+                failCount++;
+                log(`创建作品 [${title}] 失败: ${res.data}`, true);
+            }
+        }
+
+        log(`批量作品创建完成: 成功 ${successCount}, 失败 ${failCount}`);
+        showSuccess(`完成：成功 ${successCount}，失败 ${failCount}`);
+        refreshWorksList(); // 刷新下拉框
+        fileInput.value = '';
+    } catch (e)
+    {
+        showError('文件读取失败');
+        log(String(e), true);
+    }
+});
+
+
+// ----------------------------------------------------------------------
+// 4. 手动单条添加
+// ----------------------------------------------------------------------
+
+document.getElementById('add-user-btn')?.addEventListener('click', async () =>
+{
+    const uInput = document.getElementById('new-username') as HTMLInputElement;
+    const pInput = document.getElementById('new-password') as HTMLInputElement;
+    const wInput = document.getElementById('new-weight') as HTMLInputElement; // [新增]
+
+    if (!uInput.value) { showError('请输入用户名'); return; }
+
+    // 获取权重，默认为 1
+    const weightVal = parseFloat(wInput.value);
+    const weight = isNaN(weightVal) ? 1 : weightVal;
+
+    const res = await requestAdmin('/admin/register', 'POST', {
+        username: uInput.value,
+        password: pInput.value,
+        weight: weight // [修改] 发送权重
+    });
+
+    if (res.success)
+    {
+        showSuccess('用户创建成功');
+        log(`用户 [${uInput.value}] (权重: ${weight}) 创建成功`);
+        uInput.value = '';
+        pInput.value = '';
+        wInput.value = '1'; // 重置为默认
+    } else
+    {
+        showError(res.data);
+        log(res.data, true);
+    }
+});
+
+// ... (添加作品部分不变) ...
+
+
+// ----------------------------------------------------------------------
+// [新增] 单项管理 (删除单个用户/作品)
+// ----------------------------------------------------------------------
+
+document.getElementById('del-single-user-btn')?.addEventListener('click', async () =>
+{
+    const input = document.getElementById('target-user-id') as HTMLInputElement;
+    const userId = input.value.trim();
+
+    if (!userId)
+    {
+        showError('请输入 User ID');
+        return;
+    }
+
+    if (!confirm(`确定要删除用户 ID: ${userId} 吗？`)) return;
+
+    log(`正在删除用户 ${userId}...`);
+    const res = await requestAdmin('/admin/remove_user', 'POST', { userId });
+
+    if (res.success)
+    {
+        showSuccess(res.data);
+        log(res.data);
+        input.value = '';
+    } else
+    {
+        showError(res.data);
+        log(res.data, true);
+    }
+});
+
+document.getElementById('del-single-work-btn')?.addEventListener('click', async () =>
+{
+    const input = document.getElementById('target-work-id') as HTMLInputElement;
+    const workId = input.value.trim();
+
+    if (!workId)
+    {
+        showError('请输入 Work ID');
+        return;
+    }
+
+    if (!confirm(`确定要删除作品 ID: ${workId} 吗？`)) return;
+
+    log(`正在删除作品 ${workId}...`);
+    const res = await requestAdmin('/admin/remove_work', 'POST', { workId });
+
+    if (res.success)
+    {
+        showSuccess(res.data);
+        log(res.data);
+        input.value = '';
+        refreshWorksList(); // 刷新作品下拉框
+    } else
+    {
+        showError(res.data);
+        log(res.data, true);
+    }
+});
+
+document.getElementById('add-work-btn')?.addEventListener('click', async () =>
+{
+    const wInput = document.getElementById('new-workname') as HTMLInputElement;
+
+    if (!wInput.value) { showError('请输入作品名'); return; }
+
+    const res = await requestAdmin('/admin/new_work', 'POST', {
+        title: wInput.value
+    });
+
+    if (res.success)
+    {
+        showSuccess('作品创建成功');
+        log(`作品 [${wInput.value}] 创建成功`);
+        wInput.value = '';
+        refreshWorksList();
+    } else
+    {
+        showError(res.data);
+        log(res.data, true);
+    }
+});
+
+// 1. 添加抽奖人员
+document.getElementById('add-lucky-btn')?.addEventListener('click', async () =>
+{
+    const input = document.getElementById('lucky-name-input') as HTMLInputElement;
+    const name = input.value.trim();
+
+    if (!name)
+    {
+        showError('请输入名称');
+        return;
+    }
+
+    const res = await requestAdmin('/admin/add_lucky_people', 'POST', { name });
+
+    if (res.success)
+    {
+        showSuccess('已添加到名单');
+        log(`添加抽奖人 [${name}] 成功`);
+        input.value = '';
+    } else
+    {
+        showError(res.data);
+        log(res.data, true);
+    }
+});
+
+// 2. 列出名单
+document.getElementById('list-luckys-btn')?.addEventListener('click', async () =>
+{
+    // 复用之前的 list 逻辑，注意这里的接口签名也是 {success, data: []}
+    log('正在获取抽奖名单...');
+    const res = await requestAdmin('/admin/list_luckys', 'GET'); // 假设 admin 侧是 GET 或 POST 皆可，根据你后端定
+
+    if (res.success)
+    {
+        const list = res.data;
+        log(`当前抽奖池 (${Array.isArray(list) ? list.length : 0}人):\n${JSON.stringify(list, null, 2)}`);
+    } else
+    {
+        showError(res.data);
+        log(res.data, true);
+    }
+});
+
+// 3. 清空名单
+document.getElementById('clear-luckys-btn')?.addEventListener('click', async () =>
+{
+    if (!confirm('确定要清空所有抽奖名单吗？')) return;
+
+    log('正在清空抽奖池...');
+    // 注意：你描述的接口是 /admin/remove_luckys (no body)
+    const res = await requestAdmin('/admin/remove_luckys', 'POST');
+
+    if (res.success)
+    {
+        showSuccess('抽奖池已清空');
+        log('抽奖池已清空');
+    } else
+    {
+        showError(res.data);
+        log(res.data, true);
+    }
+});
+
+// ----------------------------------------------------------------------
+// 5. 数据列表查询
+// ----------------------------------------------------------------------
+
+async function fetchAndLogList(url: string, name: string)
+{
+    log(`正在获取${name}列表...`);
+    const res = await requestAdmin(url, 'GET');
+    if (res.success)
+    {
+        const jsonStr = JSON.stringify(res.data, null, 2);
+        log(`获取${name}成功:\n${jsonStr}`);
+    } else
+    {
+        log(`获取${name}失败: ${res.data}`, true);
+    }
+}
+
+document.getElementById('list-users-btn')?.addEventListener('click', () => fetchAndLogList('/admin/list_users', '用户'));
+document.getElementById('list-works-btn')?.addEventListener('click', () => fetchAndLogList('/admin/list_works', '作品'));
+document.getElementById('list-votes-btn')?.addEventListener('click', () => fetchAndLogList('/admin/list_votes', '投票'));
+document.getElementById('list-msgs-btn')?.addEventListener('click', () => fetchAndLogList('/admin/list_messages', '留言'));
+
+
+// ----------------------------------------------------------------------
+// 6. 危险区域 (删除)
+// ----------------------------------------------------------------------
+
+async function confirmAndClear(url: string, name: string)
+{
+    if (!confirm(`警告！你确定要清空所有【${name}】吗？此操作不可恢复！`))
+    {
+        return;
+    }
+
+    log(`正在清空${name}...`);
+    const res = await requestAdmin(url, 'POST');
+    if (res.success)
+    {
+        showSuccess(`所有${name}已清空`);
+        log(`所有${name}已清空`);
+        if (name === '作品') refreshWorksList();
+    } else
+    {
+        showError(res.data);
+        log(res.data, true);
+    }
+}
+
+document.getElementById('del-users-btn')?.addEventListener('click', () => confirmAndClear('/admin/remove_users', '用户'));
+document.getElementById('del-works-btn')?.addEventListener('click', () => confirmAndClear('/admin/remove_works', '作品'));
+document.getElementById('del-votes-btn')?.addEventListener('click', () => confirmAndClear('/admin/remove_votes', '投票'));
+document.getElementById('del-msgs-btn')?.addEventListener('click', () => confirmAndClear('/admin/remove_messages', '留言'));
+
+document.getElementById('upload-img-btn')?.addEventListener('click', async () =>
+{
+    const select = document.getElementById('img-work-select') as HTMLSelectElement;
+    const fileInput = document.getElementById('work-image-file') as HTMLInputElement;
+
+    if (!select.value)
+    {
+        showError('请先选择一个作品');
+        return;
+    }
+    if (!fileInput.files || fileInput.files.length === 0)
+    {
+        showError('请选择图片文件');
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('workId', select.value);
+    formData.append('image', file as File);
+
+    const selectedOptionText = select.selectedOptions?.[0]?.text ?? select.options?.[select.selectedIndex]?.text ?? '';
+    log(`正在上传作品 [${selectedOptionText}] 的封面...`);
+
+    // 这里不能用 requestAdmin 的 JSON 模式，因为要传 FormData
+    // 我们手动写 fetch
+    const apiKey = (document.getElementById('api-key-input') as HTMLInputElement).value.trim();
+    try
+    {
+        const res = await fetch('/admin/upload_work_image', {
+            method: 'POST',
+            headers: {
+                'x-api-key': apiKey
+                // 注意：不要手动设置 Content-Type，浏览器会自动识别 FormData 并设置 boundary
+            },
+            body: formData
+        });
+        const data = await res.json();
+        if (data.success)
+        {
+            showSuccess('图片上传成功');
+            log('图片上传成功');
+            fileInput.value = ''; // 清空选择
         } else
         {
-            sourceNames = ['虚位以待', '暂无名单', '请添加'];
+            showError(data.data);
+            log(data.data, true);
         }
     } catch (e)
     {
-        console.error(e);
-        sourceNames = ['网络错误', '请重试'];
+        showError('上传请求失败');
+        log(String(e), true);
     }
-
-    // 初始化 DOM 结构（对象池模式）
-    initDomPool();
-    // 初始渲染
-    renderVirtual();
 });
 
-/**
- * 初始化 DOM 对象池
- * 我们只需要创建固定数量(RENDER_COUNT)的 li 元素
- * 之后滚动时只改变它们的位置和文字，不再增删 DOM
- */
-function initDomPool()
-{
-    rollerList.innerHTML = '';
-    // 强制设置容器样式以支持绝对定位
-    rollerList.style.position = 'relative';
-    rollerList.style.height = `${VIEWPORT_HEIGHT}px`;
-    rollerList.style.overflow = 'hidden';
 
-    const fragment = document.createDocumentFragment();
-    for (let i = 0; i < RENDER_COUNT; i++)
+// ----------------------------------------------------------------------
+// 初始化
+// ----------------------------------------------------------------------
+
+init('Admin Panel', false).then(() =>
+{
+    // 自动加载 Key
+    const savedKey = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (savedKey)
     {
-        const li = document.createElement('li');
-        li.className = 'roller-item';
-        // 关键：使用绝对定位
-        li.style.position = 'absolute';
-        li.style.width = '100%';
-        li.style.height = `${ITEM_HEIGHT}px`;
-        li.style.left = '0';
-        li.style.top = '0';
-        // 初始移除视口外，避免闪烁
-        li.style.transform = `translateY(-999px)`;
-        fragment.appendChild(li);
+        apiKeyInput.value = savedKey;
+        log('已从本地加载 API Key');
+        // 自动尝试获取作品列表，相当于测试 Key 是否有效
+        refreshWorksList();
     }
-    rollerList.appendChild(fragment);
-}
-
-/**
- * 获取序列中指定索引的名字（惰性生成）
- * 保证无限且随机，同时如果在同一轮次中回看（虽然抽奖只往前滚）能保持一致
- */
-function getNameAt(index: number): string
-{
-    // 负数索引处理（初始居中时可能会用到负索引位置的渲染，显示为空或占位）
-    if (index < 0) return ''; 
-
-    // 如果缓存不够，生成新的随机序列补充进去
-    while (index >= sequenceCache.length)
-    {
-        // 纯随机选取，不依赖上一项
-        const randomIndex = Math.floor(Math.random() * sourceNames.length);
-        sequenceCache.push(sourceNames[randomIndex]!);
-    }
-    return sequenceCache[index]!;
-}
-
-/**
- * 核心：虚拟滚动渲染器
- * 每一帧调用，根据 currentOffset 计算哪些 item 可见，并更新 DOM 池
- */
-function renderVirtual()
-{
-    // 1. 计算当前视口可见的起始索引
-    // ItemY = Index * 60 - Offset
-    // 可见意味着 ItemY > -ITEM_HEIGHT (比如 -60) 且 ItemY < VIEWPORT_HEIGHT
-    // 即：Index * 60 > Offset - 60  =>  Index > (Offset/60) - 1
-    const firstVisibleIndex = Math.floor(currentOffset / ITEM_HEIGHT) - 1;
-
-    // 2. 循环更新 DOM 池中的元素
-    const domItems = rollerList.children;
-
-    for (let i = 0; i < RENDER_COUNT; i++)
-    {
-        // 逻辑索引：从可见区域的上方一点开始
-        const logicalIndex = firstVisibleIndex + i;
-
-        // 计算该元素应该在屏幕上的位置
-        const translateY = logicalIndex * ITEM_HEIGHT - currentOffset;
-
-        // 获取对应的 DOM 元素
-        // 使用取模运算循环利用 DOM 节点，防止节点闪烁
-        // 例如：逻辑索引 100 对应 DOM[100 % count]
-        // 注意：这里取模要处理负数逻辑索引的情况，虽然滚动起来后都是正数
-        const domIndex = ((logicalIndex % RENDER_COUNT) + RENDER_COUNT) % RENDER_COUNT;
-        const li = domItems[domIndex] as HTMLElement;
-
-        // 优化：只有当内容在缓冲区范围内才显示，否则移出
-        // (实际上我们的 RENDER_COUNT 已经限制在这个范围了，这里直接更新即可)
-
-        li.style.transform = `translateY(${translateY}px)`;
-
-        // 更新文字
-        // 只有当索引变化时才更新 innerText，虽然浏览器对纯文本更新优化得很好，但加个判断更保险
-        const text = getNameAt(logicalIndex);
-        if (li.textContent !== text)
-        {
-            li.textContent = text;
-        }
-    }
-}
-
-// 3. 开始滚动
-function startRoll()
-{
-    if (isRolling) return;
-
-    // 每次开始前，如果希望完全重置随机性，可以清空 cache 并重置 offset
-    // 但为了视觉连贯性，我们通常接着当前位置继续跑
-
-    isRolling = true;
-    startBtn.disabled = true;
-    startBtn.innerText = "抽奖中...";
-    resultText.innerText = "好运降临中...";
-
-    speed = 0;
-    let state = 'accelerate';
-    let startTime = Date.now();
-    let constantDuration = Math.random() * 2000 + 2000; 
-
-    const loop = () =>
-    {
-        const now = Date.now();
-        const timePassed = now - startTime;
-
-        // 状态机逻辑不变
-        if (state === 'accelerate')
-        {
-            speed += 1.5;
-            if (speed >= MAX_SPEED)
-            {
-                speed = MAX_SPEED;
-                state = 'constant';
-                startTime = Date.now();
-            }
-        } else if (state === 'constant')
-        {
-            if (timePassed > constantDuration)
-            {
-                state = 'decelerate';
-            }
-        } else if (state === 'decelerate')
-        {
-            speed *= 0.96;
-            if (speed <= MIN_SPEED)
-            {
-                stopRoll();
-                return;
-            }
-        }
-
-        // 更新逻辑位置
-        currentOffset += speed;
-
-        // 渲染虚拟列表
-        renderVirtual();
-
-        animationId = requestAnimationFrame(loop);
-    };
-
-    loop();
-}
-
-/**
- * 停止并吸附
- */
-function stopRoll()
-{
-    cancelAnimationFrame(animationId);
-    isRolling = false;
-    startBtn.disabled = false;
-    startBtn.innerText = "再次开始";
-
-    // 1. 计算应该停在哪个索引 (吸附逻辑)
-    // 目标是让某个 Item 居中
-    // 居中公式：ItemY = VIEWPORT/2 - ITEM/2 = CENTER_OFFSET (90px)
-    // ItemY = Index * H - Offset
-    // 所以：Index * H - Offset = CENTER_OFFSET
-    // => Offset = Index * H - CENTER_OFFSET
-
-    // 当前的“纯列表索引偏移” (反推 float index)
-    // currentOffset + CENTER_OFFSET = Index * H
-    const indexFloat = (currentOffset + CENTER_OFFSET) / ITEM_HEIGHT;
-    const targetIndex = Math.round(indexFloat);
-
-    // 计算精准的目标 Offset
-    const targetOffset = targetIndex * ITEM_HEIGHT - CENTER_OFFSET;
-
-    // 2. 手动实现简易的惯性回弹动画 (因为 renderVirtual 依赖 currentOffset)
-    // 这里简单的用 requestAnimationFrame 模拟一个 easeOut 过程
-    // 不再使用 CSS transition，因为虚拟滚动的 DOM 是动态跳变的，CSS transition 可能会导致错位
-
-    const startOffset = currentOffset;
-    const distance = targetOffset - startOffset;
-    const duration = 500; // ms
-    let startAnimTime = Date.now();
-
-    const snapLoop = () =>
-    {
-        const now = Date.now();
-        const progress = Math.min((now - startAnimTime) / duration, 1);
-
-        // EaseOutCubic
-        const ease = 1 - Math.pow(1 - progress, 3);
-
-        currentOffset = startOffset + (distance * ease);
-        renderVirtual();
-
-        if (progress < 1)
-        {
-            requestAnimationFrame(snapLoop);
-        } else
-        {
-            // 动画结束，公布结果
-            const winnerName = getNameAt(targetIndex);
-            resultText.innerText = `🎉 恭喜：${winnerName} 🎉`;
-        }
-    };
-
-    snapLoop();
-}
-
-startBtn.addEventListener('click', startRoll);
+});
