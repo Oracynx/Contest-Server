@@ -38,22 +38,14 @@
 
         <div class="section-divider"></div>
 
-        <!-- 3. 批量导入 -->
         <h3>批量导入</h3>
 
         <div class="file-upload-group">
-            <p><strong>批量创建用户 (.txt)</strong><br>格式: <code style="background:#ddd;padding:2px;">用户名,密码</code> (一行一个)</p>
+            <!-- [修改] 更新提示文案 -->
+            <p><strong>批量创建用户 (.txt)</strong><br>格式: <code style="background:#ddd;padding:2px;">用户名,密码,权重</code> (一行一个，权重缺省为1)</p>
             <div class="input-group">
                 <input type="file" id="batch-users-file" accept=".txt">
                 <button id="batch-users-btn">上传并创建</button>
-            </div>
-        </div>
-
-        <div class="file-upload-group">
-            <p><strong>批量创建作品 (.txt)</strong><br>格式: <code style="background:#ddd;padding:2px;">作品名</code> (一行一个)</p>
-            <div class="input-group">
-                <input type="file" id="batch-works-file" accept=".txt">
-                <button id="batch-works-btn">上传并创建</button>
             </div>
         </div>
 
@@ -79,19 +71,32 @@
         
         <div class="section-divider"></div>
 
-        <!-- 4. 手动单条添加 -->
         <h3>手动添加</h3>
         <div class="input-group">
             <input id="new-username" placeholder="用户名">
             <input id="new-password" placeholder="密码">
+            <!-- [新增] 权重输入框 -->
+            <input id="new-weight" type="number" placeholder="权重" value="1" style="width: 80px;">
             <button id="add-user-btn">注册用户</button>
-        </div>
+            </div>
+            <div class="input-group">
+                <input id="new-workname" placeholder="作品名称">
+                <button id="add-work-btn">添加作品</button>
+            </div>
+            
+            <div class="section-divider"></div>
+        <!-- [新增] 单项管理区域 -->
+        <h3>单项管理 (通过 ID 删除)</h3>
+        <p style="font-size: 0.8rem; color: #666;">请先点击下方“列出”按钮获取 ID，复制后填入框中删除。</p>
         <div class="input-group">
-            <input id="new-workname" placeholder="作品名称">
-            <button id="add-work-btn">添加作品</button>
+            <input id="target-user-id" placeholder="User ID (例如: 019...)">
+            <button id="del-single-user-btn" style="background-color: #e74c3c; color: white;">删除该用户</button>
+        </div>
+        <div class="input-group" style="margin-top: 10px;">
+            <input id="target-work-id" placeholder="Work ID (例如: 019...)">
+            <button id="del-single-work-btn" style="background-color: #e74c3c; color: white;">删除该作品</button>
         </div>
 
-        <div class="section-divider"></div>
 
         <!-- 5. 数据查询 -->
         <h3>数据查询</h3>

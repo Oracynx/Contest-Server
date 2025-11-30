@@ -190,4 +190,32 @@ export const adminApp = new Elysia()
                 return { success: false, data: '图片处理或保存失败' };
             }
         })
+        .post('/remove_user', async (ctx) =>
+        {
+            const token = ctx.headers['x-api-key'];
+            if (token != SecretKey)
+            {
+                return { success: false, data: '未授权的密钥' };
+            }
+            const data = ctx.body as { userId: string };
+            if (!data.userId) return { success: false, data: '缺少 userId' };
+
+            const res = await usersCollection.deleteOne({ userId: data.userId });
+            return Ok(`操作完成，已删除 ${res.deletedCount} 个用户`);
+        })
+        .post('/remove_work', async (ctx) =>
+        {
+            const token = ctx.headers['x-api-key'];
+            if (token != SecretKey)
+            {
+                return { success: false, data: '未授权的密钥' };
+            }
+            const data = ctx.body as { workId: string };
+            if (!data.workId) return { success: false, data: '缺少 workId' };
+
+            const res = await worksCollection.deleteOne({ workId: data.workId });
+            // 可选：顺带删除该作品的关联投票或图片，这里仅演示删除作品本身
+            return Ok(`操作完成，已删除 ${res.deletedCount} 个作品`);
+        })
+
     );

@@ -166,7 +166,6 @@ function readFileContent(file: File): Promise<string>
     });
 }
 
-// 批量创建用户
 document.getElementById('batch-users-btn')?.addEventListener('click', async () =>
 {
     const fileInput = document.getElementById('batch-users-file') as HTMLInputElement;
@@ -179,7 +178,7 @@ document.getElementById('batch-users-btn')?.addEventListener('click', async () =
     try
     {
         const content = await readFileContent(fileInput.files[0] as File);
-        const lines = content.split(/\r?\n/); // 兼容 Windows/Linux 换行
+        const lines = content.split(/\r?\n/);
         let successCount = 0;
         let failCount = 0;
 
@@ -190,14 +189,24 @@ document.getElementById('batch-users-btn')?.addEventListener('click', async () =
             const trimmed = line.trim();
             if (!trimmed) continue;
 
-            // 分割用户名和密码 (支持逗号分割)
+            // [修改] 解析 CSV 格式: username, password, weight
             const parts = trimmed.split(',');
             const username = (parts[0] as string).trim();
             const password = parts.length > 1 ? (parts[1] as string).trim() : '';
+            // 解析权重，如果未提供或解析失败则默认为 1
+            let weight = 1;
+            if (parts.length > 2)
+            {
+                const w = parseFloat(parts[2]?.trim() ?? '');
+                if (!isNaN(w))
+                {
+                    weight = w;
+                }
+            }
 
             if (!username) continue;
 
-            const res = await requestAdmin('/admin/register', 'POST', { username, password });
+            const res = await requestAdmin('/admin/register', 'POST', { username, password, weight });
             if (res.success)
             {
                 successCount++;
@@ -211,7 +220,6 @@ document.getElementById('batch-users-btn')?.addEventListener('click', async () =
         log(`批量用户创建完成: 成功 ${successCount}, 失败 ${failCount}`);
         showSuccess(`完成：成功 ${successCount}，失败 ${failCount}`);
 
-        // 清空输入框
         fileInput.value = '';
     } catch (e)
     {
@@ -275,20 +283,91 @@ document.getElementById('add-user-btn')?.addEventListener('click', async () =>
 {
     const uInput = document.getElementById('new-username') as HTMLInputElement;
     const pInput = document.getElementById('new-password') as HTMLInputElement;
+    const wInput = document.getElementById('new-weight') as HTMLInputElement; // [新增]
 
     if (!uInput.value) { showError('请输入用户名'); return; }
 
+    // 获取权重，默认为 1
+    const weightVal = parseFloat(wInput.value);
+    const weight = isNaN(weightVal) ? 1 : weightVal;
+
     const res = await requestAdmin('/admin/register', 'POST', {
         username: uInput.value,
-        password: pInput.value
+        password: pInput.value,
+        weight: weight // [修改] 发送权重
     });
 
     if (res.success)
     {
         showSuccess('用户创建成功');
-        log(`用户 [${uInput.value}] 创建成功`);
+        log(`用户 [${uInput.value}] (权重: ${weight}) 创建成功`);
         uInput.value = '';
         pInput.value = '';
+        wInput.value = '1'; // 重置为默认
+    } else
+    {
+        showError(res.data);
+        log(res.data, true);
+    }
+});
+
+// ... (添加作品部分不变) ...
+
+
+// ----------------------------------------------------------------------
+// [新增] 单项管理 (删除单个用户/作品)
+// ----------------------------------------------------------------------
+
+document.getElementById('del-single-user-btn')?.addEventListener('click', async () =>
+{
+    const input = document.getElementById('target-user-id') as HTMLInputElement;
+    const userId = input.value.trim();
+
+    if (!userId)
+    {
+        showError('请输入 User ID');
+        return;
+    }
+
+    if (!confirm(`确定要删除用户 ID: ${userId} 吗？`)) return;
+
+    log(`正在删除用户 ${userId}...`);
+    const res = await requestAdmin('/admin/remove_user', 'POST', { userId });
+
+    if (res.success)
+    {
+        showSuccess(res.data);
+        log(res.data);
+        input.value = '';
+    } else
+    {
+        showError(res.data);
+        log(res.data, true);
+    }
+});
+
+document.getElementById('del-single-work-btn')?.addEventListener('click', async () =>
+{
+    const input = document.getElementById('target-work-id') as HTMLInputElement;
+    const workId = input.value.trim();
+
+    if (!workId)
+    {
+        showError('请输入 Work ID');
+        return;
+    }
+
+    if (!confirm(`确定要删除作品 ID: ${workId} 吗？`)) return;
+
+    log(`正在删除作品 ${workId}...`);
+    const res = await requestAdmin('/admin/remove_work', 'POST', { workId });
+
+    if (res.success)
+    {
+        showSuccess(res.data);
+        log(res.data);
+        input.value = '';
+        refreshWorksList(); // 刷新作品下拉框
     } else
     {
         showError(res.data);
