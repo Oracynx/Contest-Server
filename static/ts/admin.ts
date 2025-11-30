@@ -462,6 +462,53 @@ document.getElementById('clear-luckys-btn')?.addEventListener('click', async () 
     }
 });
 
+// [新增] 批量添加抽奖人员
+document.getElementById('batch-lucky-btn')?.addEventListener('click', async () =>
+{
+    const fileInput = document.getElementById('batch-lucky-file') as HTMLInputElement;
+    if (!fileInput.files || fileInput.files.length === 0)
+    {
+        showError('请选择名单文件 (.txt)');
+        return;
+    }
+
+    try
+    {
+        const content = await readFileContent(fileInput.files[0] as File);
+        const lines = content.split(/\r?\n/);
+        let successCount = 0;
+        let failCount = 0;
+
+        log(`开始批量导入抽奖名单，共 ${lines.length} 行...`);
+
+        for (const line of lines)
+        {
+            const name = line.trim();
+            if (!name) continue;
+
+            // 调用单个添加接口
+            const res = await requestAdmin('/admin/add_lucky_people', 'POST', { name });
+            if (res.success)
+            {
+                successCount++;
+            } else
+            {
+                failCount++;
+                log(`添加名单 [${name}] 失败: ${res.data}`, true);
+            }
+        }
+
+        log(`批量名单导入完成: 成功 ${successCount}, 失败 ${failCount}`);
+        showSuccess(`完成：成功 ${successCount}，失败 ${failCount}`);
+
+        fileInput.value = '';
+    } catch (e)
+    {
+        showError('文件读取失败');
+        log(String(e), true);
+    }
+});
+
 // ----------------------------------------------------------------------
 // 5. 数据列表查询
 // ----------------------------------------------------------------------
