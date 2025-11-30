@@ -1,103 +1,206 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>幸运大转盘</title>
+    <title>幸运抽奖</title>
+    <link rel="stylesheet" href="./css/style.css">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f4f9;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
+        .container {
+            max-width: 600px;
+            padding: 20px;
+            margin: 0 auto;
         }
 
-        h1 { color: #333; margin-bottom: 20px; }
-
-        .wheel-container {
-            position: relative;
-            width: 500px;
-            height: 500px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border-radius: 50%;
-            background: white;
-            padding: 10px;
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-        
-        canvas:active { transform: scale(0.98); }
-
-        /* 指针样式 */
-        .pointer {
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 60px;
-            background: #e74c3c;
-            clip-path: polygon(100% 0, 50% 100%, 0 0);
-            z-index: 10;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-        }
-
-        /* 中心按钮/装饰 */
-        .center-circle {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 60px;
-            height: 60px;
-            background: #fff;
-            border-radius: 50%;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
+        h2 {
             color: #333;
-            pointer-events: none; /* 让点击穿透到 canvas */
-        }
-
-        .winner-modal {
-            margin-top: 30px;
-            font-size: 1.5rem;
-            color: #2c3e50;
-            font-weight: bold;
-            height: 40px;
+            margin-bottom: 30px;
             text-align: center;
         }
 
-        @media (max-width: 600px) {
-            .wheel-container { width: 320px; height: 320px; }
+        /* --- 滚动抽奖机核心样式 --- */
+
+        .roller-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 240px; /* 显示区域高度，必须是行高的倍数 (例如 60px * 4行) */
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden; /* 关键：隐藏超出部分 */
+            
+            /* 上下遮罩，制造3D圆柱感 */
+            mask-image: linear-gradient(to bottom, 
+                transparent, 
+                black 15%, 
+                black 85%, 
+                transparent
+            );
+            -webkit-mask-image: linear-gradient(to bottom, 
+                transparent, 
+                black 15%, 
+                black 85%, 
+                transparent
+            );
         }
+
+        /* 滚动的长列表 */
+        .roller-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            text-align: center;
+            /* 初始位置，将在JS中控制 transform */
+            transform: translateY(0);
+            will-change: transform; /* 性能优化 */
+        }
+
+        /* 单个名字条目 */
+        .roller-item {
+            height: 60px; /* 固定高度，JS计算需要用到 */
+            line-height: 60px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        /* --- 中间高亮区域装饰 --- */
+        
+        .highlight-area {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 64px; /* 比单行稍大一点 */
+            transform: translateY(-50%);
+            pointer-events: none; /* 让点击事件穿透 */
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 红色边框框 */
+        .highlight-box {
+            width: 80%;
+            height: 100%;
+            border: 3px solid #e74c3c;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2);
+            background-color: rgba(231, 76, 60, 0.05);
+            position: relative;
+        }
+
+        /* 左箭头 > */
+        .highlight-arrow-left {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0; 
+            height: 0; 
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            border-left: 20px solid #2c3e50;
+        }
+
+        /* 右箭头 < */
+        .highlight-arrow-right {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0; 
+            height: 0; 
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            border-right: 20px solid #2c3e50;
+        }
+
+        /* --- 按钮区域 --- */
+        .action-area {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* 开始按钮 */
+        .btn-start {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+            transition: transform 0.1s, background 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-start:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-start:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .result-text {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            font-weight: bold;
+            min-height: 40px;
+        }
+
     </style>
+    <script src="./js/lucky.js" defer></script>
 </head>
+
 <body>
 
-    <h1>幸运抽奖</h1>
+    <div class="container">
+        <h2>幸运抽奖</h2>
+    
+        <div class="roller-wrapper">
+            <!-- 滚动的列表容器 -->
+            <ul class="roller-list" id="rollerList">
+                <!-- JS 将在这里插入 li 元素 -->
+                <li class="roller-item">加载中...</li>
+            </ul>
+    
+            <!-- 中间的高亮装饰层 -->
+            <div class="highlight-area">
+                <!-- 这里的箭头放在Wrapper两侧，或者用绝对定位放在中间 -->
+                <div class="highlight-arrow-left"></div>
+                <div class="highlight-box"></div>
+                <div class="highlight-arrow-right"></div>
+            </div>
+        </div>
 
-    <div class="wheel-container">
-        <div class="pointer"></div>
-        <canvas id="wheelCanvas" width="800" height="800"></canvas>
-        <div class="center-circle">GO</div>
-    </div>
+        <div class="action-area">
+            <div class="result-text" id="result-text">准备就绪</div>
+            <button class="btn-start" id="startBtn">开始抽奖</button>
+        </div>
 
-    <div class="winner-modal" id="result-text">点击转盘开始</div>
+        <div style="margin-top: 30px;" class="text-center">
+            <a href="/">返回首页</a>
+        </div>
+        </div>
 
-    <script src="./js/lucky.js" defer></script>
 </body>
 </html>
