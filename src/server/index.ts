@@ -120,18 +120,18 @@ export const serverApp = new Elysia()
         {
             const data = ctx.query as { userId: string };
             const userId = data.userId;
-            if (!await auth(userId))
+            const user = await usersCollection.findOne({ userId });
+            if (!user)
             {
                 return Fail('用户未找到');
             }
-            const user = await usersCollection.findOne({ userId }) as { username: string, password: string, userId: string, _id?: unknown };
             return Ok(user.username);
         })
         .get('/work_info', async (ctx) =>
         {
             const data = ctx.query as { workId: string };
             const workId = data.workId;
-            const work = await worksCollection.findOne({ workId }) as { title: string; workId: string; _id?: unknown };
+            const work = await worksCollection.findOne({ workId });
             if (!work)
             {
                 return Fail('作品未找到');

@@ -19,8 +19,8 @@ export const adminApp = new Elysia()
             {
                 return { success: false, data: '未授权的密钥' };
             }
-            const data = ctx.body as { username: string; password: string };
-            return await registerUser({ username: data.username, password: data.password });
+            const data = ctx.body as { username: string; password: string, weight: number };
+            return await registerUser({ username: data.username, password: data.password, weight: data.weight });
         })
         .post('/new_work', async (ctx) =>
         {
@@ -82,7 +82,7 @@ export const adminApp = new Elysia()
             {
                 return { success: false, data: '未授权的密钥' };
             }
-            const users = await usersCollection.find({}).toArray() as Array<{ username: string, password?: string; userId: string; _id?: unknown }>;
+            const users = await usersCollection.find({}).toArray() as Array<{ username: string, password?: string, userId: string, weight: number, _id?: unknown }>;
             users.forEach(item =>
             {
                 delete item.password;

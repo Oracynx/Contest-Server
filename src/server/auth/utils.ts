@@ -3,14 +3,14 @@ import { SkipPasswordCheck } from '../../config';
 import { usersCollection } from '../database';
 import { Fail, Ok } from '../utils/def';
 
-export async function registerUser(user: { username: string, password: string })
+export async function registerUser(user: { username: string, password: string, weight: number })
 {
     if (await usersCollection.findOne({ username: user.username }))
     {
         return Fail('用户已存在');
     }
     const userId = randomUUIDv7();
-    await usersCollection.insertOne({ username: user.username, password: user.password, userId });
+    await usersCollection.insertOne({ username: user.username, password: user.password, userId, weight: user.weight });
     return Ok(userId);
 }
 

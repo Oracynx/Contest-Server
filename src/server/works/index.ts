@@ -1,5 +1,5 @@
 import { MaxiumPoints, MiniumPoints, IgnoreMin, IgnoreMax } from '../../config';
-import { votesCollection } from '../database';
+import { usersCollection, votesCollection } from '../database';
 import { Fail, Ok } from '../utils/def';
 
 export async function vote(workId: string, points: number, userId: string)

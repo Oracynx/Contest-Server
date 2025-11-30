@@ -4,7 +4,34 @@ import { DatabaseConfig } from '../../config';
 const client = await MongoClient.connect(DatabaseConfig.url);
 const db = client.db('Contest');
 
-export const usersCollection = db.collection('Users');
-export const worksCollection = db.collection('Works');
-export const votesCollection = db.collection('Votes');
+export type userSchema = {
+    username: string,
+    password: string,
+    weight: number,
+    userId: string,
+}
+
+export type workSchema = {
+    title: string,
+    workId: string,
+}
+
+export type voteSchema = {
+    workId: string,
+    points: number,
+    userId: string,
+    timestamp: number,
+}
+
+export type messageSchema = {
+    workId: string,
+    message: string,
+    userId: string,
+    timestamp: number,
+}
+
+
+export const usersCollection = db.collection<userSchema>('Users');
+export const worksCollection = db.collection<workSchema>('Works');
+export const votesCollection = db.collection<voteSchema>('Votes');
 export const messagesCollection = db.collection('Messages');
