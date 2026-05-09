@@ -32,7 +32,7 @@ let speed = 0;
 const MAX_SPEED = 50;
 const MIN_SPEED = 0.5; 
 
-init('Lucky', false).then(async () =>
+init('抽奖', false).then(async () =>
 {
     try
     {

@@ -1,3 +1,3 @@
 import { init } from './utils/base';
 
-init('Home', false);
+init('首页', false);

@@ -34,7 +34,7 @@ async function updateUserinfo()
     }
 }
 
-init('Login', false).then(async () => updateUserinfo());
+init('登录', false).then(async () => updateUserinfo());
 
 async function login()
 {

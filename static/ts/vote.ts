@@ -171,7 +171,7 @@ async function takeMessage()
     })
 }
 
-init('Vote', true).then(
+init('投票', true).then(
     async () =>
     {
         await fetchInitialStatus();

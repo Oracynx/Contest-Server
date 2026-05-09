@@ -1,8 +1,8 @@
 import Clarity from '@microsoft/clarity';
 import Toastify from 'toastify-js'
-import { MicrosoftClarityId } from '../../../src/config';
+import { MicrosoftClarityId, ContestTitle } from '../../../src/config';
 
-export const BasePagename = 'Contest Platform'
+export const ContestName = ContestTitle;
 
 export type Res = {
     success: boolean,
@@ -96,7 +96,7 @@ export async function init(pagename = '', needLogin = false)
 {
     Clarity.init(MicrosoftClarityId);
     await loadCSS('./vendor/toastify.min.css');
-    document.title = (pagename ? pagename + ' - ' : '') + BasePagename;
+    document.title = (pagename ? pagename + ' - ' : '') + ContestName + ' - 实时计分系统';
     if (needLogin)
     {
         await checkLogin();

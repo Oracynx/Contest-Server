@@ -118,6 +118,32 @@ button:active {
     color: white;
 }
 
+/* 链接样式优化 */
+.home-nav a.normal {
+    display: inline;
+    width: auto;
+    padding: 0;
+    margin-bottom: 0;
+
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+
+    text-align: left;
+
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+
+    transition: color 0.2s;
+}
+
+.home-nav a.normal:hover {
+    background-color: transparent;
+    color: var(--primary-hover);
+
+    text-decoration: underline;
+}
 /* 表格样式 (用于 Leaderboard) */
 .table-responsive {
     overflow-x: auto;

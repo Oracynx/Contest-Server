@@ -1,6 +1,6 @@
-import { init, showSuccess, toUserName } from './utils/base';
+import { ContestName, init, showSuccess, toUserName } from './utils/base';
 
-init('Leaderboard', false);
+init('榜单', false);
 
 const listBody = document.getElementById('lb-body') as HTMLDivElement;
 const ROW_HEIGHT = 60; // 必须与 CSS 中的 .lb-row height 保持一致
@@ -201,4 +201,10 @@ ws.onmessage = async (event) =>
             showSuccess(`用户 ${await toUserName(data.data)} 提交了新的评分！`);
         }
     }
+}
+
+const pageTitle = document.getElementById('page-title') as HTMLHeadElement;
+if (pageTitle)
+{
+    pageTitle.textContent = ContestName + ' - 实时排行榜';
 }
